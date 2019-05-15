@@ -36,7 +36,7 @@ Select-AzureRmSubscription -Subscription $subscription
 
 # Cleanup validation resource content in case it did not properly completed and left over components are still lingeringcd
 Write-Host "Cleanup validation resource content...";
-New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Mode Complete -TemplateFile (Resolve-Path "$PSScriptRoot\parameters\cleanup.json") -Force -Verbose
+New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-$templateLibraryName-RG -Mode Complete -TemplateFile (Resolve-Path "$PSScriptRoot\parameters\cleanup.json") -Force -Verbose
 
 # Start the deployment
 Write-Host "Starting validation deployment...";
@@ -52,9 +52,9 @@ if ($provisionningState -eq "Failed") {
 
 # Validating server template
 $validationURL = getValidationURL
-New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName-template" -TemplateUri $validationURL -TemplateParameterFile (Resolve-Path "$PSScriptRoot\parameters\validate.parameters.json") -Verbose
+New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-$templateLibraryName-RG -Name "validate-$templateLibraryName-template" -TemplateUri $validationURL -TemplateParameterFile (Resolve-Path "$PSScriptRoot\parameters\validate.parameters.json") -Verbose
 
-$provisionningState = (Get-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName-template").ProvisioningState
+$provisionningState = (Get-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-$templateLibraryName-RG -Name "validate-$templateLibraryName-template").ProvisioningState
 
 if ($provisionningState -eq "Failed") {
     Write-Host  "Test deployment failed..."
@@ -62,4 +62,4 @@ if ($provisionningState -eq "Failed") {
 
 # Cleanup validation resource content
 Write-Host "Cleanup validation resource content...";
-New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Mode Complete -TemplateFile (Resolve-Path "$PSScriptRoot\parameters\cleanup.json") -Force -Verbose
+New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-$templateLibraryName-RG -Mode Complete -TemplateFile (Resolve-Path "$PSScriptRoot\parameters\cleanup.json") -Force -Verbose
