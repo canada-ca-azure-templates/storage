@@ -10,6 +10,15 @@ Param(
 # Execution begins here
 #******************************************************************************
 
+function getValidationURL {
+    $remoteURL = git config --get remote.origin.url
+    $currentBranch = git rev-parse --abbrev-ref HEAD
+    $remoteURLnogit = $remoteURL -replace '\.git', ''
+    $remoteURLRAW = $remoteURLnogit -replace 'github.com', 'raw.githubusercontent.com'
+    $validateURL = $remoteURLRAW + '/' + $currentBranch + '/template/azuredeploy.json'
+    return $validateURL
+}
+
 # Make sure we update code to git
 git branch dev ; git checkout dev ; git pull origin dev
 git add . ; git commit -m "Update validation" ; git push origin dev
@@ -33,7 +42,7 @@ if ($provisionningState -eq "Failed") {
 }
 
 # Validating server template
-New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName-Build-$templateLibraryName" -TemplateUri $serversDevURL -TemplateParameterFile (Resolve-Path "$PSScriptRoot\parameters\validate.parameters.json") -Verbose
+New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate--$templateLibraryName" -TemplateUri getValidationURL -TemplateParameterFile (Resolve-Path "$PSScriptRoot\parameters\validate.parameters.json") -Verbose
 
 $provisionningState = (Get-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName-Build-$templateLibraryName").ProvisioningState
 
