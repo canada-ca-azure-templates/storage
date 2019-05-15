@@ -19,9 +19,18 @@ function getValidationURL {
     return $validateURL
 }
 
+$currentBranch = git rev-parse --abbrev-ref HEAD
+
+if ($currentBranch -eq 'master') {
+    $confirmation = Read-Host "You are working off the master branch... are you sure you want to validate the template from here? Switch to the dev branch is recommended. Continue? (y/n)"
+    if ($confirmation -eq 'n') {
+        exit
+    }
+}
+
 # Make sure we update code to git
-git branch dev ; git checkout dev ; git pull origin dev
-git add . ; git commit -m "Update validation" ; git push origin dev
+# git branch dev ; git checkout dev ; git pull origin dev
+git add . ; git commit -m "Update validation" ; git push origin $currentBranch
 
 Select-AzureRmSubscription -Subscription $subscription
 
@@ -43,9 +52,9 @@ if ($provisionningState -eq "Failed") {
 
 # Validating server template
 $validationURL = getValidationURL
-New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName" -TemplateUri $validationURL -TemplateParameterFile (Resolve-Path "$PSScriptRoot\parameters\validate.parameters.json") -Verbose
+New-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName-template" -TemplateUri $validationURL -TemplateParameterFile (Resolve-Path "$PSScriptRoot\parameters\validate.parameters.json") -Verbose
 
-$provisionningState = (Get-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName").ProvisioningState
+$provisionningState = (Get-AzureRmResourceGroupDeployment -ResourceGroupName PwS2-validate-storage-RG -Name "validate-$templateLibraryName-template").ProvisioningState
 
 if ($provisionningState -eq "Failed") {
     Write-Host  "Test deployment failed..."
